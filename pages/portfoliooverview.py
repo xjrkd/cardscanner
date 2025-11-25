@@ -1,0 +1,5 @@
+import streamlit as st
+st.set_page_config(page_title="Portfolio", page_icon="📈")
+
+st.sidebar.header("Portfolio")
+st.markdown("# Portfolio")
