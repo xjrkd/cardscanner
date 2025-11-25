@@ -1,0 +1,22 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+*.jpg
+*.png
+*.jpeg
+*.pth
+*.pt
+*.json
+*.csv
+# Virtual environments
+.venv
+*.db
+*.zip
+*.lock
+info.md
+*.ipynb
+*.txt
