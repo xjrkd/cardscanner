@@ -1,11 +1,16 @@
 import sqlite3 
-
+import datetime
+import os
 class PokemonDatabase:
 
     def __init__(self, db_name='portfolio.db'): 
         self.db_name = db_name
         self.conn = None
         self.cursor = None
+
+        if not os.path.isfile("portfolio.db"): 
+            self.create_tables()
+            print("Tables created!")
 
 
     def create_tables(self):
@@ -42,12 +47,13 @@ class PokemonDatabase:
         # Create the table for pricing information
         cursor.execute('''
         CREATE TABLE IF NOT EXISTS pokemon_pricing (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
             card_id TEXT NOT NULL,
             source TEXT NOT NULL,
             avg_price REAL,
             low_price REAL,
             trend REAL,
-            updated TEXT,
+            updated TEXT NOT NULL DEFAULT (datetime('now')),
             FOREIGN KEY (card_id) REFERENCES pokemon_cards (id)
         )
         ''')
@@ -92,7 +98,7 @@ class PokemonDatabase:
                     card_data["full_info"]['illustrator'], card_data['template_card'], ', '.join(card_data["full_info"]["types"])
                 )) #TODO Check Template_card in database/add actual url instead of array/add base64 string (less memory)
 
-                # Insert attack data
+                    # Insert attack data
                 for attack in card_data["full_info"]['attacks']:
                     effect = attack.get('effect', None)  # Default to None if 'effect' is missing
                     damage = attack.get('damage', None)  # Default to None if 'damage' is missing
@@ -103,18 +109,18 @@ class PokemonDatabase:
                         card_data['id'], attack['name'], ', '.join(attack['cost']),
                         effect, damage
                     ))
-
+#TODO only get cardmarket data except when theres only tcg data
                 # Insert pricing data
-                for source, pricing_info in card_data["full_info"]['pricing'].items():
-                    if pricing_info:
-                        cursor.execute('''
-                        INSERT INTO pokemon_pricing (card_id, source, avg_price, low_price, trend, updated)
-                        VALUES (?, ?, ?, ?, ?, ?)
-                        ''', (
-                            card_data['id'], source, pricing_info.get('avg', None),
-                            pricing_info.get('low', None), pricing_info.get('trend', None),
-                            pricing_info.get('updated', None)
-                        ))
+            for source, pricing_info in card_data["full_info"]['pricing'].items():
+                if pricing_info:
+                    cursor.execute('''
+                    INSERT INTO pokemon_pricing (card_id, source, avg_price, low_price, trend, updated)
+                    VALUES (?, ?, ?, ?, ?, ?)
+                    ''', (
+                        card_data['id'], source, pricing_info.get('avg', None),
+                        pricing_info.get('low', None), pricing_info.get('trend', None),
+                        f"_{datetime.datetime.now()}" #pricing_info.get('updated', None)
+                    ))
 
         # Commit changes and close connection
         conn.commit()
