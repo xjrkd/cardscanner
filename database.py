@@ -1,6 +1,8 @@
 import sqlite3 
 import datetime
 import os
+import requests
+
 class PokemonDatabase:
 
     def __init__(self, db_name='portfolio.db'): 
@@ -14,6 +16,9 @@ class PokemonDatabase:
 
 
     def create_tables(self):
+        '''
+        Initializes the DB tables.
+        '''
         conn = sqlite3.connect('portfolio.db')
         cursor = conn.cursor()
         cursor.execute('''
@@ -58,12 +63,36 @@ class PokemonDatabase:
         )
         ''')
 
+        cursor.execute('''
+        CREATE TABLE IF NOT EXISTS portfolio_value (
+                       id INTEGER PRIMARY KEY AUTOINCREMENT,
+                       timestamp DATETIME NOT NULL,
+                       total_value REAL NOT NULL,
+                       total_cards INTEGER,
+                       total_unique_cards INTEGER)
+        ''')
+
+
+        cursor.execute('''CREATE TABLE IF NOT EXISTS set_info (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        set_id TEXT NOT NULL,
+                        set_name TEXT NOT NULL, 
+                        card_id TEXT NOT NULL,
+                        card_name TEXT NOT NULL,
+                        image_url TEXT,
+                        UNIQUE(set_id, card_id))        --prevents duplicates
+                       ''')
         # Commit changes and close connection
         conn.commit()
         conn.close()
 
 
-    def insert_card_data(self, matched_cards):
+    def insert_card_data(self, matched_cards:list):
+        '''
+        Populates the DBs with information from a list (matched_cards).
+        :param self: 
+        :param matched_cards: Description
+        '''
         conn = sqlite3.connect('portfolio.db')
         cursor = conn.cursor()
 
@@ -76,7 +105,7 @@ class PokemonDatabase:
             existing_card = cursor.fetchone()
             
             if existing_card: 
-                print("\n\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> \n \n", existing_card[0])
+                #print("\n\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> \n \n", existing_card[0])
                 new_quantity = existing_card[0] + 1
                 #Update to modify existing entries in Table
                 cursor.execute('''
@@ -109,20 +138,65 @@ class PokemonDatabase:
                         card_data['id'], attack['name'], ', '.join(attack['cost']),
                         effect, damage
                     ))
-#TODO only get cardmarket data except when theres only tcg data
+
                 # Insert pricing data
-            for source, pricing_info in card_data["full_info"]['pricing'].items():
-                if pricing_info:
-                    cursor.execute('''
-                    INSERT INTO pokemon_pricing (card_id, source, avg_price, low_price, trend, updated)
-                    VALUES (?, ?, ?, ?, ?, ?)
-                    ''', (
-                        card_data['id'], source, pricing_info.get('avg', None),
-                        pricing_info.get('low', None), pricing_info.get('trend', None),
-                        f"_{datetime.datetime.now()}" #pricing_info.get('updated', None)
-                    ))
+            pricing = card_data["full_info"]['pricing']
+            if pricing.get("cardmarket"):
+                source = "cardmarket"
+                pricing_info = pricing["cardmarket"]
+            else: 
+                source = "tcgplayer"
+                pricing_info = pricing["tcgplayer"]
+            # for source, pricing_info in card_data["full_info"]['pricing']:
+            cursor.execute('''
+            INSERT INTO pokemon_pricing (card_id, source, avg_price, low_price, trend, updated)
+            VALUES (?, ?, ?, ?, ?, ?)
+            ''', (
+                card_data['id'], source, pricing_info.get('avg1', None),
+                pricing_info.get('low', None), pricing_info.get('trend', None),
+                f"{datetime.datetime.now().replace(second=0, microsecond=0)}" #pricing_info.get('updated', None)
+            ))
+
+            response = requests.get(f'https://api.tcgdex.net/v2/de/sets/{card_data["full_info"]["set"]["id"]}').json()
+            for entry in response["cards"]: 
+                cursor.execute('''
+                                INSERT OR IGNORE INTO set_info (set_id, set_name, card_id, card_name, image_url)
+                                VALUES (?,?,?,?,?)
+                                ''', (card_data["full_info"]["set"]["id"], card_data["full_info"]['set']["name"], 
+                                    entry["id"], entry["name"], f"{entry['image']}/low.jpg" 
+                ))
+
 
         # Commit changes and close connection
+        conn.commit()
+        conn.close()
+        self.fill_portfolio_values() #Update Portfolio as last step
+
+    def fill_portfolio_values(self): 
+        '''
+        Populates the portfolio_value table with columns timestamp, total_value, total_cards, total_unique_cards.
+        :param self: 
+        '''
+        conn = sqlite3.connect('portfolio.db')
+        cursor = conn.cursor()
+        cursor.execute("SELECT id, quantity FROM pokemon_cards")
+        cards = cursor.fetchall()
+
+        full_portfolio_value = 0
+        total_cards = 0
+        unique_cards = 0
+        for card_id, quantity in cards: 
+            response = requests.get(f"https://api.tcgdex.net/v2/de/cards/{card_id}").json()
+            unique_cards+=1
+            total_cards+=quantity
+            full_portfolio_value+=quantity*response["pricing"]["cardmarket"]["avg1"]
+        
+        cursor.execute('''
+                    INSERT INTO portfolio_value (timestamp, total_value, total_cards, total_unique_cards)  
+                       VALUES (?,?,?,?) 
+                    ''',(
+                        datetime.datetime.now().replace(second=0, microsecond=0), round(full_portfolio_value,2), total_cards, unique_cards 
+                    ))
         conn.commit()
         conn.close()
 
@@ -160,3 +234,4 @@ class PokemonDatabase:
 #         'tcgplayer': None
 #     }
 # }
+

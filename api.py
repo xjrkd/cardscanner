@@ -29,14 +29,14 @@ def home():
 @app.post("/scan")
 async def scan_card(file: UploadFile = File(...)):
     """
-    This endpoint receives an image file from the App (Android/iOS),
+    This endpoint receives an image file from the App,
     processes it, saves to DB, and returns the results.
     """
     
-    # 1. Read the image bytes sent by the phone
+    # 1. Read the image bytes sent
     image_data = await file.read()
     
-    # 2. Convert bytes to a PIL Image (what your code expects)
+    # 2. Convert bytes to a PIL Image
     image = Image.open(io.BytesIO(image_data))
     image = ImageOps.exif_transpose(image) # FIX phone error EXIF Orientation.
     # When you take a photo with a phone, the camera saves the pixels in the orientation of the sensor (usually "sideways" or landscape), even if you held the phone vertically. It adds a metadata tag (EXIF) saying "Rotate this 90 degrees when viewing."
@@ -68,7 +68,7 @@ async def scan_card(file: UploadFile = File(...)):
     return {"status": "success", "cards": response_data}
 
 
-def convert_nparray_to_string(matched_cards): 
+def convert_nparray_to_string(matched_cards: list) -> list: 
     for card in matched_cards:
         image_array_card = card.get("card")
         image_array_template = card.get("template_card")

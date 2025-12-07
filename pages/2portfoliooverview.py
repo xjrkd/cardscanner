@@ -2,6 +2,7 @@ import streamlit as st
 import sqlite3
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 st.set_page_config(page_title="Portfolio", page_icon="📈")
 
 st.sidebar.header("Portfolio")
@@ -10,8 +11,6 @@ st.markdown("# Portfolio")
 def query_db() -> list: 
     conn = sqlite3.connect('portfolio.db')
     cursor = conn.cursor()
-
-
 
     ###
     #     How This Query Works:
@@ -46,7 +45,6 @@ def query_db() -> list:
         WHERE
             lp.rn = 1;
     """)
-    #print(cursor)
 
     return cursor.fetchall()
 
@@ -86,10 +84,29 @@ def generate_pie_chart(cursor: list):
     print(total_cards)
 
         
-def generate_price_history(cursor: list): 
-    pass
+def generate_price_history(): 
+    '''
+    Queries the DB to get dates, total cards, unqiue cards and pricing to display linescharts.
+    '''
+    conn = sqlite3.connect('portfolio.db')
+    cursor = conn.cursor()
+    cursor.execute("SELECT timestamp, total_value, total_cards, total_unique_cards FROM portfolio_value")
+    rows = cursor.fetchall()
+    df_value = pd.DataFrame({
+        "date": [date[0] for date in rows],
+        "value": [val[1] for val in rows]
+    })
+    st.line_chart(df_value, x="date", y="value")
 
+    df_cards = pd.DataFrame({
+         "date": [date[0] for date in rows],
+         "unique": [unique[3] for unique in rows],
+         "total_cards": [total[2] for total in rows]
+    })
+
+    st.line_chart(df_cards, x="date", y=["unique","total_cards"])
 
 cursor = query_db()
 get_all_prices(cursor)
 generate_pie_chart(cursor) 
+generate_price_history()

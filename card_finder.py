@@ -20,8 +20,7 @@ class CardFinder():
         '''
         Matches a detected and cropped card against a template from the api.
         '''
-
-
+        
         card = cv2.cvtColor(entry["card"], cv2.COLOR_RGB2GRAY)
         #template = cv2.cvtColor(cv2.imread("./images/meow.jpg"), cv2.COLOR_BGR2GRAY)
         height_card, width_card = card.shape[:2]
@@ -35,6 +34,24 @@ class CardFinder():
         template_artwork = template_artwork.astype(np.uint8)
 
         res_mt = cv2.matchTemplate(artwork_card,template_artwork,cv2.TM_CCOEFF_NORMED)
+
+
+        ### FULL CARD MATCH
+        # artwork_card = card[0:height_card, 0:width_card]
+
+        # height_template, width_template = template.shape[:2]
+
+        # # Use full height for template
+        # template_artwork = template[0:height_template, 0:width_template]
+
+        # # Resize template to match the size of the card's artwork
+        # template_artwork = cv2.resize(template_artwork, (artwork_card.shape[1], artwork_card.shape[0]))
+
+        # artwork_card = artwork_card.astype(np.uint8)
+        # template_artwork = template_artwork.astype(np.uint8)
+
+        # Perform template matching
+        # res_mt = cv2.matchTemplate(artwork_card, template_artwork, cv2.TM_CCOEFF_NORMED)
         
         print("\n")
         return card, res_mt
@@ -74,6 +91,8 @@ class CardFinder():
             result_mt = -1
             card, result_mt = self.template_match_card(entry, template, result_mt)
 
+            print(f"Mid Result: Url: {img_url}, score: {result_mt}")
+
             if result_mt > highest_score:  # if we found a higher match score
                 highest_score = result_mt
                 best_card = card
@@ -98,7 +117,7 @@ class CardFinder():
             url = f"https://api.tcgdex.net/v2/de/cards?name={pokemon}&hp={hp}" #TODO /de/ für deutsche Karten
             response = requests.get(url)
             response = response.json()
-            print(f"FIND POKEMON {pokemon} \n \n RESPONSE: {response} \n \n")
+            print(f"\n \n FIND POKEMON {pokemon} \n RESPONSE: {response} \n \n")
             best_card, highest_score, best_card_url, template, card_id = self.find_best_match_for_pokemon(entry, response)
 
             if best_card is not None:   #best_card is the image taken with a camera

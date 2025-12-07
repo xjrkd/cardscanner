@@ -25,10 +25,10 @@ def main():
     
     ### Database 
     database = PokemonDatabase(db_name="portfolio.db")
-    #database.create_tables()
+    database.create_tables()
     # database.migrate_add_quantity_to_pricing()
     database.insert_card_data(matched_cards)
-
+    database.fill_portfolio_values()
     
 
 # Insert the card data into the database

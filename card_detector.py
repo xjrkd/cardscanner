@@ -16,10 +16,12 @@ import torch
 
 
 class CardDetector: 
-    def __init__(self, model):
+    def __init__(self, model=None):
         self.model = model
         self.pokedex_csv = pd.read_csv("international_dex.csv") #With international names, further has attacks etc. https://www.pokecommunity.com/threads/international-list-of-names-in-csv.460446/
 
+    # def initialize_model(self, model):
+    #     self.model = model
 
     def initialize_paths(): 
         ds = sv.DetectionDataset.from_coco(
@@ -130,6 +132,8 @@ class CardDetector:
         hp = re.sub(r'[^0-9]', '', detection["text"])
         if hp and detection["relative_y"] <= 0.2 and detection["relative_x"] >=0.6:
             print("FIND HP: ",hp)
+            if 999<int(hp):             #Quick fix
+                hp=hp[:-1]
             # top_texts.append(hp)
             return hp
         
@@ -161,7 +165,7 @@ class CardDetector:
                     continue  # skip short, unreliable OCR results like "Tera", "ex", "HP"
 
                 # Fuzzy match only if exact match fails
-                print("cleaned:", cleaned)
+                #print("cleaned:", cleaned)
                 if cleaned in normalized_pokedex:
                     print(f"Matched: {normalized_pokedex[cleaned]} (from '{detected_text}')")
                     
@@ -172,7 +176,7 @@ class CardDetector:
             matched_pokemon_for_this_card["card"] = ocr_result_array[i]["detections"][0]["card"]
             matched_pokemon.append(matched_pokemon_for_this_card)
 
-        print(matched_pokemon)
+        print(f"\n \n Matched Pokemon in match_cards: {matched_pokemon} \n")
         return matched_pokemon
 
         
