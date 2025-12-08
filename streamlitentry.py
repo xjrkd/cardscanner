@@ -1,6 +1,6 @@
 import streamlit as st
 from rfdetr import RFDETRNano
-
+from utils import get_model
 st.set_page_config(
     page_title="Hello",
     page_icon="👋",
@@ -8,11 +8,13 @@ st.set_page_config(
 
 st.write("# Welcome")
 
-@st.cache_resource
-def get_model(): 
-    with st.spinner("Loading Model"):
-       return RFDETRNano(pretrain_weights="E:\\PythonProjects\\pokemon\\rfdetr_train\\checkpoint0004.pth")
+username = st.text_input("(Optional) Enter your username", st.session_state.get("user_for_db", ""))
 
+st.session_state.user_for_db = username.strip() if username else None
 
-get_model()
+st.write("Current username:", st.session_state.user_for_db)
+
+st.write(st.session_state.user_for_db)
+
+model = get_model()
 

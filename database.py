@@ -7,19 +7,21 @@ class PokemonDatabase:
 
     def __init__(self, db_name='portfolio.db'): 
         self.db_name = db_name
-        self.conn = None
-        self.cursor = None
+        self.db_name = db_name
+        self.conn = sqlite3.connect(self.db_name)
+        self.cursor = self.conn.cursor()
+        self.create_tables()
 
-        if not os.path.isfile("portfolio.db"): 
-            self.create_tables()
-            print("Tables created!")
+        # if not os.path.isfile(db_name): 
+        # self.create_tables(db_name)
+        #print("Tables created!")
 
 
     def create_tables(self):
         '''
         Initializes the DB tables.
         '''
-        conn = sqlite3.connect('portfolio.db')
+        conn = sqlite3.connect(self.db_name)
         cursor = conn.cursor()
         cursor.execute('''
         CREATE TABLE IF NOT EXISTS pokemon_cards (
@@ -87,13 +89,13 @@ class PokemonDatabase:
         conn.close()
 
 
-    def insert_card_data(self, matched_cards:list):
+    def insert_card_data(self, matched_cards:list, db_name):
         '''
         Populates the DBs with information from a list (matched_cards).
         :param self: 
         :param matched_cards: Description
         '''
-        conn = sqlite3.connect('portfolio.db')
+        conn = sqlite3.connect(db_name)
         cursor = conn.cursor()
 
         for card_data in matched_cards:
@@ -177,7 +179,7 @@ class PokemonDatabase:
         Populates the portfolio_value table with columns timestamp, total_value, total_cards, total_unique_cards.
         :param self: 
         '''
-        conn = sqlite3.connect('portfolio.db')
+        conn = sqlite3.connect(self.db_name)
         cursor = conn.cursor()
         cursor.execute("SELECT id, quantity FROM pokemon_cards")
         cards = cursor.fetchall()

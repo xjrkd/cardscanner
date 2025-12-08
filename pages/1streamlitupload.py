@@ -6,7 +6,7 @@ import io
 from database import PokemonDatabase
 from card_detector import CardDetector
 from card_finder import CardFinder
-from streamlitentry import get_model
+from utils import get_model
 
 st.set_page_config(page_title="Upload", page_icon="📈")
 
@@ -17,19 +17,28 @@ st.write(
 )
 
 if "database" not in st.session_state:
-    st.session_state.database = PokemonDatabase()
 
-st.session_state.database.create_tables()
+    username = st.session_state.get("user_for_db")
+
+    if username:
+        db_name = f"{username}.db"
+    else:
+        db_name = "portfolio.db"
+
+    st.session_state.database = PokemonDatabase(db_name)
+
+st.write("Using database:", st.session_state.database.db_name)
 
 if "detector" not in st.session_state: 
     st.session_state.detector = CardDetector(get_model())
 
 if "finder" not in st.session_state: 
     st.session_state.finder = CardFinder(st.session_state.detector)
-    
 
-def generate_multiselect(matched_cards: list) -> list: 
-    pass
+placeholder = st.empty()
+container = placeholder.container(border=True)
+
+
 def scan_and_analyze_cards():
     uploaded_files = st.file_uploader("Upload Card", type=["jpg", "png"], accept_multiple_files=True)
 
@@ -73,38 +82,42 @@ def scan_and_analyze_cards():
         st.session_state.get("multi_select_options", []),
     )
 
-
 def display(matched_cards_list, multi_select_options):
-    if matched_cards_list:
-        for card in matched_cards_list[0]:
-            st.image(card["best_card_url"])
-            st.write(card["matched_pokemon"])
+    with container:
+        if matched_cards_list:
+            for card in matched_cards_list[0]:
+                st.image(card["best_card_url"])
+                st.write(card["matched_pokemon"])
 
-    multi_select = st.multiselect(
-        "Exclude the following cards from being added to the database",
-        multi_select_options,
-    )
-    return multi_select
+        multi_select = st.multiselect(
+            "Exclude the following cards from being added to the database",
+            multi_select_options,
+            )
+        return multi_select
 
 def add_cards_to_database(selection): 
     if "matched_cards_list" not in st.session_state:
         st.session_state.matched_cards_list = []
     if not st.session_state.matched_cards_list:
         return  
+    
     ids_to_remove = [id[1] for id in selection]
     cards_to_add_to_database = [card for card in st.session_state.matched_cards_list[0] if card["id"] not in ids_to_remove]
     #print(st.session_state.matched_cards_list)
     if st.button("Submit to database"):
-        st.session_state.database.insert_card_data(cards_to_add_to_database)
-
+        st.session_state.database.insert_card_data(cards_to_add_to_database, f"{st.session_state.database.db_name}")
+        placeholder.empty()
 
 matched_cards_list, multi_select_options = scan_and_analyze_cards()
 multi_select = display(matched_cards_list, multi_select_options)
 add_cards_to_database(multi_select)
 
-#TODO ADD SELECTED CARDS TO DATABASE
 
-##Old
+
+
+
+
+##Deprecated
 
 def api_request(): 
     uploaded_files = st.file_uploader("Upload Card", type=["jpg", "png"], accept_multiple_files=True)
