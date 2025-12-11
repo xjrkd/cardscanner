@@ -126,8 +126,8 @@ class PokemonDatabase:
                 ''', (
                     card_data['id'], card_data["full_info"]['name'], card_data["full_info"]['rarity'],
                     card_data["full_info"]['set']["name"], card_data["full_info"]["set"]['id'], card_data['hp'],
-                    card_data["full_info"]['illustrator'], card_data['template_card'], ', '.join(card_data["full_info"]["types"])
-                )) #TODO Check Template_card in database/add actual url instead of array/add base64 string (less memory)
+                    card_data["full_info"]['illustrator'], card_data['best_card_url'], ', '.join(card_data["full_info"]["types"])
+                )) 
 
                     # Insert attack data
                 for attack in card_data["full_info"]['attacks']:

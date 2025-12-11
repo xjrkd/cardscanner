@@ -7,6 +7,7 @@ from database import PokemonDatabase
 from card_detector import CardDetector
 from card_finder import CardFinder
 from utils import get_model
+import time
 
 st.set_page_config(page_title="Upload", page_icon="📈")
 
@@ -16,16 +17,16 @@ st.write(
     """Upload a file with trading cards here."""
 )
 
-if "database" not in st.session_state:
+# if "database" not in st.session_state:
 
-    username = st.session_state.get("user_for_db")
+#     username = st.session_state.get("user_for_db")
 
-    if username:
-        db_name = f"{username}.db"
-    else:
-        db_name = "portfolio.db"
+#     if username:
+#         db_name = f"{username}.db"
+#     else:
+#         db_name = "portfolio.db"
 
-    st.session_state.database = PokemonDatabase(db_name)
+#     st.session_state.database = PokemonDatabase(db_name)
 
 st.write("Using database:", st.session_state.database.db_name)
 
@@ -38,15 +39,20 @@ if "finder" not in st.session_state:
 placeholder = st.empty()
 container = placeholder.container(border=True)
 
+if "file_uploader_key" not in st.session_state:
+    st.session_state["file_uploader_key"] = 0
+
+if "uploaded_files" not in st.session_state:
+    st.session_state["uploaded_files"] = []
 
 def scan_and_analyze_cards():
-    uploaded_files = st.file_uploader("Upload Card", type=["jpg", "png"], accept_multiple_files=True)
 
+    uploaded_files = st.file_uploader("Upload Card", type=["jpg", "png"], accept_multiple_files=True, key=st.session_state["file_uploader_key"])
     # Check if new files have been uploaded
     if uploaded_files:
         # Convert upload list to filenames to compare
         uploaded_filenames = [f.name for f in uploaded_files]
-
+        st.session_state["uploaded_files"] = uploaded_files
         # Run processing only if files changed
         if st.session_state.get("last_uploaded_files") != uploaded_filenames:
             st.session_state.last_uploaded_files = uploaded_filenames
@@ -85,15 +91,19 @@ def scan_and_analyze_cards():
 def display(matched_cards_list, multi_select_options):
     with container:
         if matched_cards_list:
-            for card in matched_cards_list[0]:
-                st.image(card["best_card_url"])
-                st.write(card["matched_pokemon"])
+            for cards in matched_cards_list:    
+                for i in range(0, len(cards), 3):
+                    cols = container.columns(3)
+                    for col, card in zip(cols, cards[i:i+3]):
+                        col.image(card["best_card_url"])
+                        col.write(card["matched_pokemon"])
 
         multi_select = st.multiselect(
             "Exclude the following cards from being added to the database",
             multi_select_options,
-            )
+        )
         return multi_select
+
 
 def add_cards_to_database(selection): 
     if "matched_cards_list" not in st.session_state:
@@ -107,6 +117,11 @@ def add_cards_to_database(selection):
     if st.button("Submit to database"):
         st.session_state.database.insert_card_data(cards_to_add_to_database, f"{st.session_state.database.db_name}")
         placeholder.empty()
+        st.session_state["file_uploader_key"] += 1
+        st.session_state.matched_cards_list = []            #Reset so old card isn't displayed anymore
+        st.session_state.multi_select_options = []
+        st.rerun()
+    
 
 matched_cards_list, multi_select_options = scan_and_analyze_cards()
 multi_select = display(matched_cards_list, multi_select_options)
