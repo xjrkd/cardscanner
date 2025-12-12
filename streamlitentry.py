@@ -1,5 +1,4 @@
 import streamlit as st
-from rfdetr import RFDETRNano
 from database import PokemonDatabase
 st.set_page_config(
     page_title="Hello",

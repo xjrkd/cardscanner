@@ -37,7 +37,7 @@ def get_set_names():
     # st.write(set_selector.split("-")[-1])
 
     if set_selector ==  "Cards-in-collection": 
-        cursor.execute("SELECT id, name, set_name, image_url FROM pokemon_cards")
+        cursor.execute("SELECT card_id, name, set_name, image_url FROM pokemon_cards")
         rows = cursor.fetchall()
         image_urls = [(image_url, id) for id, name, set_name, image_url in rows]
         card_ids = [id for id, name, set_name, image_url in rows]
@@ -116,7 +116,7 @@ def get_all_images_from_set(set_id: str, cols_per_row: int = 4):
  
     img_urls = [(image, card_id) for image, card_id in rows] #Create tuple of url and card_id for later check
 
-    cursor.execute("SELECT id FROM pokemon_cards WHERE set_id = ?",(set_id,))    #Owned cards
+    cursor.execute("SELECT card_id FROM pokemon_cards WHERE set_id = ?",(set_id,))    #Owned cards
     owned_cards_rows = cursor.fetchall()
     owned_cards_rows = [x[0] for x in owned_cards_rows]
 

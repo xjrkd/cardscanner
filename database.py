@@ -25,7 +25,7 @@ class PokemonDatabase:
         cursor = conn.cursor()
         cursor.execute('''
         CREATE TABLE IF NOT EXISTS pokemon_cards (
-            id TEXT PRIMARY KEY,
+            card_id TEXT PRIMARY KEY,
             name TEXT NOT NULL,
             rarity TEXT NOT NULL,
             set_name TEXT NOT NULL,
@@ -102,7 +102,7 @@ class PokemonDatabase:
             card_id = card_data['id']
             # Select to retrieve data from table (pokemon_cards) where id matches (placeholder)
             cursor.execute('''
-            SELECT quantity FROM pokemon_cards WHERE id = ?
+            SELECT quantity FROM pokemon_cards WHERE card_id = ?
             ''', (card_id,))
             existing_card = cursor.fetchone()
             
@@ -113,7 +113,7 @@ class PokemonDatabase:
                 cursor.execute('''
                 UPDATE pokemon_cards
                 SET quantity = ?
-                WHERE id = ?
+                WHERE card_id = ?
                 ''', (new_quantity, card_id))
                 
             else:
@@ -121,7 +121,7 @@ class PokemonDatabase:
                 # Insert into Table (pokemon_cards) into columns (id, name) the values (placeholders followed by actual values)
                 cursor.execute('''
                 INSERT OR REPLACE INTO pokemon_cards (
-                    id, name, rarity, set_name, set_id, hp, illustrator, image_url, type
+                    card_id, name, rarity, set_name, set_id, hp, illustrator, image_url, type
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ''', (
                     card_data['id'], card_data["full_info"]['name'], card_data["full_info"]['rarity'],
@@ -181,7 +181,7 @@ class PokemonDatabase:
         '''
         conn = sqlite3.connect(self.db_name)
         cursor = conn.cursor()
-        cursor.execute("SELECT id, quantity FROM pokemon_cards")
+        cursor.execute("SELECT card_id, quantity FROM pokemon_cards")
         cards = cursor.fetchall()
 
         full_portfolio_value = 0

@@ -9,7 +9,7 @@ st.sidebar.header("Portfolio")
 st.markdown("# Portfolio")
 
 def query_db() -> list: 
-    conn = sqlite3.connect('portfolio.db')
+    conn = sqlite3.connect(f"{st.session_state.database.db_name}")
     cursor = conn.cursor()
 
     ###
@@ -34,14 +34,14 @@ def query_db() -> list:
         pokemon_pricing
 )
         SELECT
-            pc.id,
+            pc.card_id,
             pc.name,
             pc.quantity,
             lp.avg_price
         FROM
             pokemon_cards pc
         JOIN
-            LatestPricing lp ON pc.id = lp.card_id
+            LatestPricing lp ON pc.card_id = lp.card_id
         WHERE
             lp.rn = 1;
     """)
@@ -88,7 +88,7 @@ def generate_price_history():
     '''
     Queries the DB to get dates, total cards, unqiue cards and pricing to display linescharts.
     '''
-    conn = sqlite3.connect('portfolio.db')
+    conn = sqlite3.connect(f"{st.session_state.database.db_name}")
     cursor = conn.cursor()
     cursor.execute("SELECT timestamp, total_value, total_cards, total_unique_cards FROM portfolio_value")
     rows = cursor.fetchall()
