@@ -22,16 +22,16 @@ st.write("Current username:", st.session_state.user_for_db)
 
 st.write(st.session_state.user_for_db)
 
-if "database" not in st.session_state:
+# if "database" not in st.session_state:
 
-    username = st.session_state.get("user_for_db")
+username = st.session_state.get("user_for_db")
 
-    if username:
-        db_name = f"{username}.db"
-    else:
-        db_name = "portfolio.db"
+if username:
+    db_name = f"{username}.db"
+else:
+    db_name = "portfolio.db"
 
-    st.session_state.database = PokemonDatabase(db_name)
+st.session_state.database = PokemonDatabase(db_name)
 
 
 from utils import get_model

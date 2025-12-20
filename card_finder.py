@@ -36,7 +36,9 @@ class CardFinder():
         res_mt = cv2.matchTemplate(artwork_card,template_artwork,cv2.TM_CCOEFF_NORMED)
 
 
-        ### FULL CARD MATCH
+        ## FULL CARD MATCH
+        # card = cv2.cvtColor(entry["card"], cv2.COLOR_RGB2GRAY)
+        # height_card, width_card = card.shape[:2]
         # artwork_card = card[0:height_card, 0:width_card]
 
         # height_template, width_template = template.shape[:2]
@@ -50,7 +52,7 @@ class CardFinder():
         # artwork_card = artwork_card.astype(np.uint8)
         # template_artwork = template_artwork.astype(np.uint8)
 
-        # Perform template matching
+        # ## Perform template matching
         # res_mt = cv2.matchTemplate(artwork_card, template_artwork, cv2.TM_CCOEFF_NORMED)
         
         print("\n")
@@ -104,7 +106,7 @@ class CardFinder():
         return best_card, highest_score, best_card_url, best_template, card_id
 
 
-        
+    ## TODO if/else for missing hp values, try except for request
     def find_cards(self, matched_pokemon):
         '''
         Iterates over all pokemon names detected by ocr. 
@@ -114,7 +116,11 @@ class CardFinder():
         for i, entry in enumerate(matched_pokemon):
             pokemon = entry["matched_pokemon"]
             hp = entry["hp"]
-            url = f"https://api.tcgdex.net/v2/de/cards?name={pokemon}&hp={hp}" #TODO /de/ für deutsche Karten
+            if hp:
+                url = f"https://api.tcgdex.net/v2/de/cards?name={pokemon}&hp={hp}" #TODO /de/ für deutsche Karten
+            else:
+                print("Find Card, resorting to just pokemon, no hp \n \n")
+                url = f"https://api.tcgdex.net/v2/de/cards?name={pokemon}"
             response = requests.get(url)
             response = response.json()
             print(f"\n \n FIND POKEMON {pokemon} \n RESPONSE: {response} \n \n")

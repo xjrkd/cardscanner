@@ -132,10 +132,12 @@ class CardDetector:
         hp = re.sub(r'[^0-9]', '', detection["text"])
         if hp and detection["relative_y"] <= 0.2 and detection["relative_x"] >=0.6:
             print("FIND HP: ",hp)
-            if 999<int(hp):             #Quick fix
+            if 999<int(hp):             #Quick fix, if type icon gets read as "0"
                 hp=hp[:-1]
             # top_texts.append(hp)
             return hp
+        else:
+            return None
         
     def match_cards(self, ocr_result_array)->list:
         # Prepare normalized Pokédex list once
@@ -157,7 +159,7 @@ class CardDetector:
                 cleaned = self.normalize_detected_name(detected_text, False, normalized_pokedex)
                 
                 hp_texts = self.find_hp(detection)
-                if hp_texts:
+                if hp_texts and hp_texts is not None:
                     top_texts.append(hp_texts)
                 
 
@@ -172,7 +174,10 @@ class CardDetector:
                     matched_pokemon_for_this_card["matched_pokemon"] = normalized_pokedex[cleaned]     #convert to dict with hp
                     
             print("All Found HP Texts: ", top_texts)
-            matched_pokemon_for_this_card["hp"] = top_texts[0]
+            if top_texts:
+                matched_pokemon_for_this_card["hp"] = top_texts[0]
+            else: 
+                matched_pokemon_for_this_card["hp"] = None
             matched_pokemon_for_this_card["card"] = ocr_result_array[i]["detections"][0]["card"]
             matched_pokemon.append(matched_pokemon_for_this_card)
 

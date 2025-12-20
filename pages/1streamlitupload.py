@@ -96,7 +96,7 @@ def display(matched_cards_list, multi_select_options):
                     cols = container.columns(3)
                     for col, card in zip(cols, cards[i:i+3]):
                         col.image(card["best_card_url"])
-                        col.write(card["matched_pokemon"])
+                        col.write(f'{card["matched_pokemon"], card["id"]}')
 
         multi_select = st.multiselect(
             "Exclude the following cards from being added to the database",
