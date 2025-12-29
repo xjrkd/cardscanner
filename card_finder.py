@@ -14,7 +14,7 @@ class CardFinder():
     
     def __init__(self, carddetector):
         self.carddetector = carddetector
-
+        self.flag_url_missing = False
 
     def template_match_card(self, entry, template: np.array = None, res: int = -1): 
         '''
@@ -106,7 +106,7 @@ class CardFinder():
         return best_card, highest_score, best_card_url, best_template, card_id
 
 
-    ## TODO if/else for missing hp values, try except for request
+    ## TODO try except for request
     def find_cards(self, matched_pokemon):
         '''
         Iterates over all pokemon names detected by ocr. 
@@ -123,14 +123,16 @@ class CardFinder():
                 url = f"https://api.tcgdex.net/v2/de/cards?name={pokemon}"
             response = requests.get(url)
             response = response.json()
+            flag_url_missing = any("image" not in response_card for response_card in response)
             print(f"\n \n FIND POKEMON {pokemon} \n RESPONSE: {response} \n \n")
             best_card, highest_score, best_card_url, template, card_id = self.find_best_match_for_pokemon(entry, response)
 
-            if best_card is not None:   #best_card is the image taken with a camera
+            if best_card is not None: 
                 print(f"Best match for {pokemon} (HP {hp}): Score = {highest_score}, Url: {best_card_url}")
                 entry["best_card_url"] = best_card_url
                 entry["template_card"] = template
                 entry["id"] = card_id
+                entry["missing_url"] = flag_url_missing
                 
                 plt.imshow(template)
           

@@ -149,6 +149,9 @@ class PokemonDatabase:
             else: 
                 source = "tcgplayer"
                 pricing_info = pricing["tcgplayer"]
+            
+            if pricing_info is None: 
+                pricing_info = {}
             # for source, pricing_info in card_data["full_info"]['pricing']:
             cursor.execute('''
             INSERT INTO pokemon_pricing (card_id, source, avg_price, low_price, trend, updated)
@@ -161,11 +164,15 @@ class PokemonDatabase:
 
             response = requests.get(f'https://api.tcgdex.net/v2/de/sets/{card_data["full_info"]["set"]["id"]}').json()
             for entry in response["cards"]: 
+                try: 
+                    image = f"{entry['image']}/low.jpg"
+                except KeyError: 
+                    image = None
                 cursor.execute('''
                                 INSERT OR IGNORE INTO set_info (set_id, set_name, card_id, card_name, image_url)
                                 VALUES (?,?,?,?,?)
                                 ''', (card_data["full_info"]["set"]["id"], card_data["full_info"]['set']["name"], 
-                                    entry["id"], entry["name"], f"{entry['image']}/low.jpg" 
+                                    entry["id"], entry["name"], image 
                 ))
 
 
@@ -191,7 +198,16 @@ class PokemonDatabase:
             response = requests.get(f"https://api.tcgdex.net/v2/de/cards/{card_id}").json()
             unique_cards+=1
             total_cards+=quantity
-            full_portfolio_value+=quantity*response["pricing"]["cardmarket"]["avg1"]
+            pricing = response.get("pricing", {})
+            cardmarket = pricing.get("cardmarket")
+
+            if cardmarket is None:          #TODO safe cards with no value and display in review streamlit page
+                continue  # no price → skip value calculation
+            avg_price = cardmarket.get("avg1")
+            if avg_price is None:
+                continue
+
+            full_portfolio_value += quantity * avg_price
         
         cursor.execute('''
                     INSERT INTO portfolio_value (timestamp, total_value, total_cards, total_unique_cards)  
