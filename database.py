@@ -12,10 +12,6 @@ class PokemonDatabase:
         self.cursor = self.conn.cursor()
         self.create_tables()
 
-        # if not os.path.isfile(db_name): 
-        # self.create_tables(db_name)
-        #print("Tables created!")
-
 
     def create_tables(self):
         '''
@@ -54,8 +50,7 @@ class PokemonDatabase:
         # Create the table for pricing information
         cursor.execute('''
         CREATE TABLE IF NOT EXISTS pokemon_pricing (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            card_id TEXT NOT NULL,
+            card_id TEXT PRIMARY KEY NOT NULL,
             source TEXT NOT NULL,
             avg_price REAL,
             low_price REAL,
@@ -107,7 +102,6 @@ class PokemonDatabase:
             existing_card = cursor.fetchone()
             
             if existing_card: 
-                #print("\n\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> \n \n", existing_card[0])
                 new_quantity = existing_card[0] + 1
                 #Update to modify existing entries in Table
                 cursor.execute('''
@@ -152,10 +146,14 @@ class PokemonDatabase:
             
             if pricing_info is None: 
                 pricing_info = {}
-            # for source, pricing_info in card_data["full_info"]['pricing']:
+            
             cursor.execute('''
-            INSERT INTO pokemon_pricing (card_id, source, avg_price, low_price, trend, updated)
-            VALUES (?, ?, ?, ?, ?, ?)
+            INSERT INTO pokemon_pricing (card_id, source, avg_price, low_price, trend, updated) 
+            VALUES (?, ?, ?, ?, ?, ?) ON CONFLICT DO UPDATE SET
+            avg_price = excluded.avg_price,
+            low_price = excluded.low_price,
+            trend = excluded.trend,
+            updated = excluded.updated
             ''', (
                 card_data['id'], source, pricing_info.get('avg1', None),
                 pricing_info.get('low', None), pricing_info.get('trend', None),
@@ -184,6 +182,7 @@ class PokemonDatabase:
     def fill_portfolio_values(self): 
         '''
         Populates the portfolio_value table with columns timestamp, total_value, total_cards, total_unique_cards.
+        By iterating through the pokemon_cards table. 
         :param self: 
         '''
         conn = sqlite3.connect(self.db_name)
@@ -200,10 +199,13 @@ class PokemonDatabase:
             total_cards+=quantity
             pricing = response.get("pricing", {})
             cardmarket = pricing.get("cardmarket")
-
-            if cardmarket is None:          #TODO safe cards with no value and display in review streamlit page
-                continue  # no price → skip value calculation
-            avg_price = cardmarket.get("avg1")
+            
+            if cardmarket is None:   
+                cardmarket = pricing.get("tcgplayer")  # no price, try other marketplcae else skip value calculation
+            try:
+                avg_price = cardmarket.get("avg1")
+            except: 
+                continue
             if avg_price is None:
                 continue
 
@@ -217,39 +219,5 @@ class PokemonDatabase:
                     ))
         conn.commit()
         conn.close()
-
-# card_data = {
-#     'category': 'Pokemon',
-#     'id': 'sv02-242',
-#     'illustrator': 'PLANETA Hiiragi',
-#     'image': 'https://assets.tcgdex.net/en/sv/sv02/242',
-#     'localId': '242',
-#     'name': 'Annihilape ex',
-#     'rarity': 'Ultra Rare',
-#     'set': {
-#         'cardCount': {'official': 193, 'total': 279},
-#         'id': 'sv02',
-#         'logo': 'https://assets.tcgdex.net/en/sv/sv02/logo',
-#         'name': 'Paldea Evolved',
-#         'symbol': 'https://assets.tcgdex.net/univ/sv/sv02/symbol'
-#     },
-#     'variants': {'firstEdition': False, 'holo': True, 'normal': False, 'reverse': False, 'wPromo': False},
-#     'variants_detailed': [{'type': 'holo', 'size': 'standard'}],
-#     'dexId': [979],
-#     'hp': 320,
-#     'types': ['Fighting'],
-#     'stage': 'Stage2',
-#     'attacks': [
-#         {'cost': ['Fighting'], 'name': 'Angry Grudge', 'effect': 'Put up to 12 damage counters on this Pokémon. This attack does 20 damage for each damage counter you placed in this way.', 'damage': '20×'},
-#         {'cost': ['Fighting', 'Colorless'], 'name': 'Seismic Toss', 'damage': 150}
-#     ],
-#     'retreat': 2,
-#     'regulationMark': 'G',
-#     'legal': {'standard': True, 'expanded': True},
-#     'updated': '2025-08-16T20:39:55Z',
-#     'pricing': {
-#         'cardmarket': {'updated': '2025-11-14T01:47:56.000Z', 'unit': 'EUR', 'avg': 2.76, 'low': 0.05, 'trend': 2.9},
-#         'tcgplayer': None
-#     }
-# }
+        print("Portfolio values filled")
 

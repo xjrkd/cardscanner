@@ -49,7 +49,7 @@ def clear_input_field():
 if "manual_input_field" not in st.session_state: 
     st.session_state.manual_input_field = ""
 
-st.session_state.manual_input_field = st.text_input("Enter card and HP manually. Or upload files below.", value=st.session_state.manual_input_field)
+st.session_state.manual_input_field = st.text_input("Enter card and HP manually (Name;HP). Or upload files below.", value=st.session_state.manual_input_field)
 
 
 uploaded_files = st.file_uploader("Upload Card", type=["jpg", "png"], accept_multiple_files=True, key=st.session_state["file_uploader_key"])
@@ -93,8 +93,6 @@ def scan_and_analyze_cards():
         st.session_state.get("matched_cards_list", []),
         st.session_state.get("multi_select_options", []),
     )
-
-
 
 
 def manual_card_input(): 
@@ -161,7 +159,7 @@ def add_cards_to_database(selection):
         print(st.session_state.multi_select_options, st.session_state.matched_cards_list)
         st.rerun()
     
-def manage_selection_and_submit(matched_cards_list, multi_select_options):
+def manage_selection_and_submit(matched_cards_list: list, multi_select_options: list, manual: bool): 
     with container:
         # Interaction with widgets inside here WON'T trigger a rerun.
         with st.form("validation_form"):
@@ -180,7 +178,14 @@ def manage_selection_and_submit(matched_cards_list, multi_select_options):
                             col.write(f'{card["matched_pokemon"], card["id"], warning_missing_url }')
 
             # Multiselect Logic
-            selection = st.multiselect(
+            if manual:
+                selection = st.multiselect(
+                    "Exclude the following cards from being added to the database",
+                    multi_select_options,
+                    default=multi_select_options
+                )
+            else: 
+                selection = st.multiselect(
                 "Exclude the following cards from being added to the database",
                 multi_select_options,
             )
@@ -222,7 +227,7 @@ def manage_selection_and_submit(matched_cards_list, multi_select_options):
 if uploaded_files: 
     print("files uploaded")
     matched_cards_list, multi_select_options = scan_and_analyze_cards()
-    manage_selection_and_submit(matched_cards_list, multi_select_options)
+    manage_selection_and_submit(matched_cards_list, multi_select_options, manual=False)
     
 if "manual_input_field" in st.session_state and st.session_state.manual_input_field != "":
     print("manual input")
@@ -230,22 +235,9 @@ if "manual_input_field" in st.session_state and st.session_state.manual_input_fi
     if manual_matched_cards:
         st.session_state.matched_cards_list = manual_matched_cards 
         st.session_state.multi_select_options = manual_multi_select
-    manage_selection_and_submit(manual_matched_cards, manual_multi_select)
+    manage_selection_and_submit(manual_matched_cards, manual_multi_select, manual=True)
 
 
-
-
-
-# ###Matched_cards_list 
-#[
-# {'matched_pokemon': 'Darkrai', 'hp': '130', 'card': array([[[146, 139, 121],
-        
-#         [124, 117,  99],
-#         [164, 157, 139]]], shape=(1112, 855, 3), dtype=uint8), 'best_card_url': 'https://assets.tcgdex.net/de/sv/sv03/136/low.jpg', 'template_card': array([[[0, 0, 0],
-#         [0, 0, 0],
-        
-#         [0, 0, 0]]], shape=(337, 245, 3), dtype=uint8), 'id': 'sv03-136', 'missing_url': False, 'full_info': {'category': 'Pokémon', 'id': 'sv03-136', 'illustrator': 'Bun Toujo', 'image': 'https://assets.tcgdex.net/de/sv/sv03/136', 'localId': '136', 'name': 'Darkrai', 'rarity': 'Selten', 'set': {...}, 'variants': {...}, 'variants_detailed': [...], 'dexId': [...], 'hp': 130, 'types': [...], 'stage': 'Basis', 'attacks': [...], 'retreat': 2, 'regulationMark': 'G', 'legal': {...}, 'updated': '2025-08-16T20:39:55Z', ...}}
-#]
 
 ##Deprecated
 

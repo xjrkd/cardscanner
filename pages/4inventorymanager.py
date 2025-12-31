@@ -189,5 +189,7 @@ if st.button(label="Delete selected Cards", type="primary"):
         # Filter: Get only rows where Remove Amount > 0
         changes = changes[changes['Remove Amount'] > 0]
         process_inventory_removals(changes)
-        update_portfolio_value()
+        st.session_state.database.fill_portfolio_values() 
+
+        #update_portfolio_value() #use api calls (above) in db class for more accurate and up to date prices
 

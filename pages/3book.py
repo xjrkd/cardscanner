@@ -120,7 +120,6 @@ def get_all_images_from_set(set_id: str, cols_per_row: int = 4):
     owned_cards_rows = cursor.fetchall()
     owned_cards_rows = [x[0] for x in owned_cards_rows]
 
-    #print(img_urls)
     draw_cards(img_urls, cols_per_row, owned_cards_rows)
 
 

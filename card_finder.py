@@ -1,13 +1,9 @@
-import supervision as sv
 from PIL import Image
 import numpy as np
 import cv2
 import matplotlib.pyplot as plt
 import matplotlib.pyplot as plt
-import pandas as pd 
 import urllib.request
-from rapidfuzz import fuzz, process
-import re
 import requests
 
 class CardFinder(): 
@@ -71,10 +67,6 @@ class CardFinder():
         card_id = None
         best_template = None
 
-        #TODO
-         #RESPONSE: [{'id': 'cel25-2A', 'localId': '2A', 'name': 'Blastoise'}, {'id': 'base1-2', 'localId': '2', 'name': 'Blastoise', 'image': 'https://assets.tcgdex.net/en/base/base1/2'}, {'id': 'base4-2', 'localId': '2', 'name': 'Blastoise', 'image': 'https://assets.tcgdex.net/en/base/base4/2'}, {'id': 'ecard1-4', 'localId': '4', 'name': 'Blastoise', 'image': 'https://assets.tcgdex.net/en/ecard/ecard1/4'}, {'id': 'ecard1-36', 'localId': '36', 'name': 'Blastoise', 'image': 'https://assets.tcgdex.net/en/ecard/ecard1/36'}, {'id': 'ecard1-37', 'localId': '37', 'name': 'Blastoise', 'image': 'https://assets.tcgdex.net/en/ecard/ecard1/37'}]
-        #WENN KEIN IMAGE DA IST ÜBERSPRINGEN
-
         for img_data in pokemon_images:
             if not img_data.get("image"): 
                 continue
@@ -82,7 +74,7 @@ class CardFinder():
             try: 
                 res = urllib.request.urlopen(img_url)
                 arr = np.asarray(bytearray(res.read()), dtype=np.uint8)
-            except:  ###EXCEPTION IF /LOW.JPG does not work
+            except:  #If /low.jpg does not work
                 img_url = f'{img_data["image"]}/high.jpg'
                 res = urllib.request.urlopen(img_url)
                 arr = np.asarray(bytearray(res.read()), dtype=np.uint8)
@@ -105,8 +97,6 @@ class CardFinder():
         # After all images are checked, return the card with the highest match score
         return best_card, highest_score, best_card_url, best_template, card_id
 
-
-    ## TODO try except for request
     def find_cards(self, matched_pokemon):
         '''
         Iterates over all pokemon names detected by ocr. 
@@ -121,8 +111,13 @@ class CardFinder():
             else:
                 print("Find Card, resorting to just pokemon, no hp \n \n")
                 url = f"https://api.tcgdex.net/v2/de/cards?name={pokemon}"
-            response = requests.get(url)
-            response = response.json()
+            
+            try:
+                response = requests.get(url)
+                response = response.json()
+            except requests.exceptions.RequestException as e: 
+                print("Request Error: ", e)
+
             flag_url_missing = any("image" not in response_card for response_card in response)
             print(f"\n \n FIND POKEMON {pokemon} \n RESPONSE: {response} \n \n")
             best_card, highest_score, best_card_url, template, card_id = self.find_best_match_for_pokemon(entry, response)
@@ -147,15 +142,8 @@ class CardFinder():
         Updates pokemon list with pricing information.
         '''
         for entry in matched_pokemon: 
-            #print(entry["id"])
             url = f"https://api.tcgdex.net/v2/de/cards/{entry['id']}"
             full_card_response = requests.get(url).json()
             entry["full_info"] = full_card_response
-            # entry["pricing"] = full_card_response["pricing"]
-            # entry["set_info"] = full_card_response["set"]
-            # entry["types"] = full_card_response["types"]
-            # entry["name"] = full_card_response["name"]
-            # entry["rarity"] = full_card_response["rarity"]
-            # entry["illustrator"] = full_card_response["illustrator"]
-            print("\n \n----------------------------------FULLCARDRESPONSE:",full_card_response)
+            #print("\n \n----------------------------------FULLCARDRESPONSE:",full_card_response)
         return matched_pokemon

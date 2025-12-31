@@ -53,6 +53,7 @@ def get_all_prices(cursor: list):
     portfolio_value = 0
     missing_values = 0
     total_cards_quantity = 0
+    missing_cards_string = ""
     for row in cursor: 
         quantity = row[2]
         price = row[3]
@@ -61,8 +62,8 @@ def get_all_prices(cursor: list):
             portfolio_value+= quantity*price
         else: 
             missing_values+=1
-    st.write(f"Current Value: {portfolio_value}, missing price for {missing_values} cards. Total cards: {total_cards_quantity}")
-
+            missing_cards_string+= f"{row[1]}-{row[0]}, \n"
+    st.write(f"Current Value: {round(portfolio_value,2)}, missing price for {missing_values} cards ({missing_cards_string}). Total cards: {total_cards_quantity}")
 
 def generate_pie_chart(cursor: list): 
     #print(cursor)
@@ -86,7 +87,7 @@ def generate_pie_chart(cursor: list):
         
 def generate_price_history(): 
     '''
-    Queries the DB to get dates, total cards, unqiue cards and pricing to display linescharts.
+    Queries the DB to get dates, total cards, unqiue cards and pricing to display linecharts.
     '''
     conn = sqlite3.connect(f"{st.session_state.database.db_name}")
     cursor = conn.cursor()
@@ -108,5 +109,6 @@ def generate_price_history():
 
 cursor = query_db()
 get_all_prices(cursor)
-generate_pie_chart(cursor) 
+generate_pie_chart(cursor)
+st.session_state.database.fill_portfolio_values() 
 generate_price_history()
