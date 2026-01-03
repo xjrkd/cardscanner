@@ -68,8 +68,8 @@ def process_inventory_removals(df_changes: pd.DataFrame):
 
             query_pricing = """
                 DELETE FROM pokemon_pricing 
-                WHERE id IN (
-                    SELECT id FROM pokemon_pricing 
+                WHERE card_id IN (
+                    SELECT card_id FROM pokemon_pricing 
                     WHERE card_id = ? 
                     ORDER BY updated ASC 
                     LIMIT ?

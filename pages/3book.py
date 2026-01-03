@@ -86,7 +86,7 @@ def draw_cards(img_urls: list, cols_per_row: int, owned_cards_rows: list):
         for j, col in enumerate(cols):
             if (i+j)>=len(img_urls): 
                 continue    #Stopping if row ends on e.g. 2/4 cards 
-            if img_urls[i+j][1] in owned_cards_rows:
+            if img_urls[i+j][1] in owned_cards_rows and img_urls[i+j][0] is not None :
                 col.image(img_urls[i+j][0])
             else: 
                 #print(img_urls[i+j][0])

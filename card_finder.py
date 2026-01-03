@@ -8,9 +8,10 @@ import requests
 
 class CardFinder(): 
     
-    def __init__(self, carddetector):
+    def __init__(self, carddetector, language):
         self.carddetector = carddetector
         self.flag_url_missing = False
+        self.language = language 
 
     def template_match_card(self, entry, template: np.array = None, res: int = -1): 
         '''
@@ -85,7 +86,7 @@ class CardFinder():
             result_mt = -1
             card, result_mt = self.template_match_card(entry, template, result_mt)
 
-            print(f"Mid Result: Url: {img_url}, score: {result_mt}")
+            print(f"Url: {img_url}, score: {result_mt}")
 
             if result_mt > highest_score:  # if we found a higher match score
                 highest_score = result_mt
@@ -107,10 +108,10 @@ class CardFinder():
             pokemon = entry["matched_pokemon"]
             hp = entry["hp"]
             if hp:
-                url = f"https://api.tcgdex.net/v2/de/cards?name={pokemon}&hp={hp}" #TODO /de/ für deutsche Karten
+                url = f"https://api.tcgdex.net/v2/{self.language}/cards?name={pokemon}&hp={hp}" #TODO /de/ für deutsche Karten
             else:
                 print("Find Card, resorting to just pokemon, no hp \n \n")
-                url = f"https://api.tcgdex.net/v2/de/cards?name={pokemon}"
+                url = f"https://api.tcgdex.net/v2/{self.language}/cards?name={pokemon}"
             
             try:
                 response = requests.get(url)
@@ -142,7 +143,7 @@ class CardFinder():
         Updates pokemon list with pricing information.
         '''
         for entry in matched_pokemon: 
-            url = f"https://api.tcgdex.net/v2/de/cards/{entry['id']}"
+            url = f"https://api.tcgdex.net/v2/{self.language}/cards/{entry['id']}"
             full_card_response = requests.get(url).json()
             entry["full_info"] = full_card_response
             #print("\n \n----------------------------------FULLCARDRESPONSE:",full_card_response)

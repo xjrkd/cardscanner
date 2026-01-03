@@ -32,7 +32,7 @@ else:
     db_name = "portfolio.db"
 
 st.session_state.database = PokemonDatabase(db_name)
-
+st.session_state.language = st.selectbox("Choose language", ("de","en"))
 
 from utils import get_model
 model = get_model()

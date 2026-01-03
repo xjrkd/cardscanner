@@ -5,12 +5,13 @@ import requests
 
 class PokemonDatabase:
 
-    def __init__(self, db_name='portfolio.db'): 
+    def __init__(self, db_name:str = 'portfolio.db', language: str = "de"): 
         self.db_name = db_name
         self.db_name = db_name
         self.conn = sqlite3.connect(self.db_name)
         self.cursor = self.conn.cursor()
         self.create_tables()
+        self.language = language
 
 
     def create_tables(self):
@@ -40,7 +41,7 @@ class PokemonDatabase:
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             card_id TEXT NOT NULL,
             name TEXT NOT NULL,
-            cost TEXT NOT NULL,
+            cost TEXT,
             effect TEXT,
             damage TEXT,
             FOREIGN KEY (card_id) REFERENCES pokemon_cards (id)
@@ -84,7 +85,7 @@ class PokemonDatabase:
         conn.close()
 
 
-    def insert_card_data(self, matched_cards:list, db_name):
+    def insert_card_data(self, matched_cards:list, db_name: str):
         '''
         Populates the DBs with information from a list (matched_cards).
         :param self: 
@@ -125,13 +126,15 @@ class PokemonDatabase:
 
                     # Insert attack data
                 for attack in card_data["full_info"]['attacks']:
-                    effect = attack.get('effect', None)  # Default to None if 'effect' is missing
-                    damage = attack.get('damage', None)  # Default to None if 'damage' is missing
+                    effect = attack.get('effect', None)  # Default to None if missing
+                    damage = attack.get('damage', None)  
+                    cost = attack.get('cost', None)
                     cursor.execute('''
                     INSERT OR REPLACE INTO pokemon_attacks (card_id, name, cost, effect, damage)
                     VALUES (?, ?, ?, ?, ?)
                     ''', (
-                        card_data['id'], attack['name'], ', '.join(attack['cost']),
+                        card_data['id'], attack['name'], 
+                        cost if cost is None else ', '.join(cost),
                         effect, damage
                     ))
 
@@ -160,7 +163,7 @@ class PokemonDatabase:
                 f"{datetime.datetime.now().replace(second=0, microsecond=0)}" #pricing_info.get('updated', None)
             ))
 
-            response = requests.get(f'https://api.tcgdex.net/v2/de/sets/{card_data["full_info"]["set"]["id"]}').json()
+            response = requests.get(f'https://api.tcgdex.net/v2/{self.language}/sets/{card_data["full_info"]["set"]["id"]}').json()
             for entry in response["cards"]: 
                 try: 
                     image = f"{entry['image']}/low.jpg"
@@ -194,7 +197,7 @@ class PokemonDatabase:
         total_cards = 0
         unique_cards = 0
         for card_id, quantity in cards: 
-            response = requests.get(f"https://api.tcgdex.net/v2/de/cards/{card_id}").json()
+            response = requests.get(f"https://api.tcgdex.net/v2/{self.language}/cards/{card_id}").json()
             unique_cards+=1
             total_cards+=quantity
             pricing = response.get("pricing", {})
@@ -219,5 +222,5 @@ class PokemonDatabase:
                     ))
         conn.commit()
         conn.close()
-        print("Portfolio values filled")
+        print("Portfolio values updated")
 

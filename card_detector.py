@@ -19,8 +19,8 @@ class CardDetector:
 
     def initialize_paths(): 
         ds = sv.DetectionDataset.from_coco(
-        images_directory_path="E:\\PythonProjects\\pokemon\\cardsdataset\\data\\test",
-        annotations_path="E:\\PythonProjects\\pokemon\\cardsdataset\\data\\test\\_annotations.coco.json",
+        images_directory_path=".\\cardsdataset\\data\\test",
+        annotations_path=".\\cardsdataset\\data\\test\\_annotations.coco.json",
         )
         return ds
 
@@ -174,7 +174,7 @@ class CardDetector:
             matched_pokemon_for_this_card["card"] = ocr_result_array[i]["detections"][0]["card"]
             matched_pokemon.append(matched_pokemon_for_this_card)
 
-        print(f"\n \n Matched Pokemon in match_cards: {matched_pokemon} \n")
+        #print(f"\n \n Matched Pokemon in match_cards: {matched_pokemon} \n")
         return matched_pokemon
 
         

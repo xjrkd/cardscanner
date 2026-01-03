@@ -24,7 +24,7 @@ if "detector" not in st.session_state:
     st.session_state.detector = CardDetector(get_model())
 
 if "finder" not in st.session_state: 
-    st.session_state.finder = CardFinder(st.session_state.detector)
+    st.session_state.finder = CardFinder(st.session_state.detector, st.session_state.language)
 
 placeholder = st.empty()
 container = placeholder.container(border=True)
@@ -97,20 +97,21 @@ def scan_and_analyze_cards():
 
 def manual_card_input(): 
     if "manual_input_field" in st.session_state and st.session_state.manual_input_field != "":
-        print("Manual INput st:", st.session_state.manual_input_field)
         mon = st.session_state.manual_input_field.split(";")[0]
         hp = st.session_state.manual_input_field.split(";")[-1].replace(";","")
-        url = f"https://api.tcgdex.net/v2/de/cards?name={mon}&hp={hp}"
+        url = f"https://api.tcgdex.net/v2/{st.session_state.language}/cards?name={mon}&hp={hp}"
         response = requests.get(url).json()
         manual_multi_select = []
         for entry in response: 
-            full_info_url = f"https://api.tcgdex.net/v2/de/cards/{entry['id']}"
+            full_info_url = f"https://api.tcgdex.net/v2/{st.session_state.language}/cards/{entry['id']}"
             full_info = requests.get(full_info_url).json()
+            print(f"\n Manual card input response: {full_info} \n \n")
             entry["full_info"] = full_info
             entry["matched_pokemon"] = full_info["name"]
             entry["hp"] = hp
-            entry["best_card_url"] = f'{full_info["image"]}/low.jpg'
-            entry["missing_url"] = False
+            entry["best_card_url"] = f'{full_info.get("image")}/low.jpg' if full_info.get("image") is not None else None
+            entry["missing_url"] = True if full_info.get("image") is None else False
+
             manual_multi_select.append((full_info["name"], entry["id"]))
         
         # st.session_state.matched_cards_list.append(response)
@@ -119,45 +120,45 @@ def manual_card_input():
     return [], []
 
 
-def display(matched_cards_list, multi_select_options):
-    with container:
-        if matched_cards_list:
-            for cards in matched_cards_list:    
-                for i in range(0, len(cards), 3):
-                    cols = container.columns(3)
-                    for col, card in zip(cols, cards[i:i+3]):
-                        col.image(card["best_card_url"])
-                        if card["missing_url"]: 
-                            warning_missing_url = "Warning: Incomplete API Database. Card might be wrong!"
-                        else: 
-                            warning_missing_url = ""
-                        col.write(f'{card["matched_pokemon"], card["id"], warning_missing_url }')
+# def display(matched_cards_list, multi_select_options):
+#     with container:
+#         if matched_cards_list:
+#             for cards in matched_cards_list:    
+#                 for i in range(0, len(cards), 3):
+#                     cols = container.columns(3)
+#                     for col, card in zip(cols, cards[i:i+3]):
+#                         col.image(card["best_card_url"])
+#                         if card["missing_url"]: 
+#                             warning_missing_url = "Warning: Incomplete API Database. Card might be wrong!"
+#                         else: 
+#                             warning_missing_url = ""
+#                         col.write(f'{card["matched_pokemon"], card["id"], warning_missing_url }')
 
-        multi_select = st.multiselect(
-            "Exclude the following cards from being added to the database",
-            multi_select_options,
-        )
-        return multi_select
+#         multi_select = st.multiselect(
+#             "Exclude the following cards from being added to the database",
+#             multi_select_options,
+#         )
+#         return multi_select
 
-def add_cards_to_database(selection): 
-    if "matched_cards_list" not in st.session_state:
-        st.session_state.matched_cards_list = []
-    if not st.session_state.matched_cards_list:
-        print("returning, no cards list (None)")
-        return  
+# def add_cards_to_database(selection): 
+#     if "matched_cards_list" not in st.session_state:
+#         st.session_state.matched_cards_list = []
+#     if not st.session_state.matched_cards_list:
+#         print("returning, no cards list (None)")
+#         return  
     
-    ids_to_remove = [id[1] for id in selection]
-    cards_to_add_to_database = [card for card in st.session_state.matched_cards_list[0] if card["id"] not in ids_to_remove]
+#     ids_to_remove = [id[1] for id in selection]
+#     cards_to_add_to_database = [card for card in st.session_state.matched_cards_list[0] if card["id"] not in ids_to_remove]
     
-    if st.button("Submit to database"):
-        st.session_state.database.insert_card_data(cards_to_add_to_database, f"{st.session_state.database.db_name}")
-        placeholder.empty()
-        st.session_state["file_uploader_key"] += 1
-        st.session_state.matched_cards_list = []            #Reset so old card isn't displayed anymore
-        st.session_state.multi_select_options = []
-        st.session_state.manual_input_field = st.text_input("Enter card and HP manually. Or upload files below.", value="", on_change=clear_input_field)
-        print(st.session_state.multi_select_options, st.session_state.matched_cards_list)
-        st.rerun()
+#     if st.button("Submit to database"):
+#         st.session_state.database.insert_card_data(cards_to_add_to_database, f"{st.session_state.database.db_name}", st.session_state.language)
+#         placeholder.empty()
+#         st.session_state["file_uploader_key"] += 1
+#         st.session_state.matched_cards_list = []            #Reset so old card isn't displayed anymore
+#         st.session_state.multi_select_options = []
+#         st.session_state.manual_input_field = st.text_input("Enter card and HP manually. Or upload files below.", value="", on_change=clear_input_field)
+#         print(st.session_state.multi_select_options, st.session_state.matched_cards_list)
+#         st.rerun()
     
 def manage_selection_and_submit(matched_cards_list: list, multi_select_options: list, manual: bool): 
     with container:
@@ -170,9 +171,9 @@ def manage_selection_and_submit(matched_cards_list: list, multi_select_options: 
                     for i in range(0, len(cards), 3):
                         cols = st.columns(3) # Use st.columns inside the form
                         for col, card in zip(cols, cards[i:i+3]):
-                            col.image(card["best_card_url"])
-                            if card["missing_url"]: 
+                            if not card["missing_url"] or card["best_card_url"] is not None: 
                                 warning_missing_url = "Warning: Incomplete API Database."
+                                col.image(card["best_card_url"])
                             else: 
                                 warning_missing_url = ""
                             col.write(f'{card["matched_pokemon"], card["id"], warning_missing_url }')
@@ -225,12 +226,12 @@ def manage_selection_and_submit(matched_cards_list: list, multi_select_options: 
 
 ##Main
 if uploaded_files: 
-    print("files uploaded")
     matched_cards_list, multi_select_options = scan_and_analyze_cards()
     manage_selection_and_submit(matched_cards_list, multi_select_options, manual=False)
+    print("Files uploaded")
     
 if "manual_input_field" in st.session_state and st.session_state.manual_input_field != "":
-    print("manual input")
+    print("Manual input")
     manual_matched_cards, manual_multi_select = manual_card_input()
     if manual_matched_cards:
         st.session_state.matched_cards_list = manual_matched_cards 
