@@ -12,6 +12,11 @@ wheels/
 *.pt
 *.json
 *.csv
+
+!showcase/uploadpage.png
+!showcase/portfolio.png
+!showcase/book.png
+
 # Virtual environments
 .venv
 *.db
