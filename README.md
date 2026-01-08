@@ -1,6 +1,6 @@
 # Pokémon Card Scanner
 
-A Pokémon Card Scanner that detects and identifies Pokémon cards using image processing and a finetuned RFDETR model.  
+A Pokémon Card Scanner that detects and identifies Pokémon cards using template matching, OCR and a finetuned RFDETR model.  
 The project is designed to scan cards via images or the provided name and return relevant card information by querying a REST-API (https://tcgdex.dev/)
 
 ---
@@ -19,10 +19,17 @@ The project is designed to scan cards via images or the provided name and return
 ## 📷 Showcase
 
 ![Upload Page](showcase/uploadpage.png)
+
 Upload your image here. When uploading multiple images you can choose which cards should be added to the database in case some are misclassified.
 
 ![Scrapbook](showcase/book.png)
+
 Personal collection page. Cards in collection are displayed in color while missing cards are displayed as grayscale images. 
 
 ![Portfolio](showcase/portfolio.png)
+
 Information about your entire collection such as unique cards, total cards and current value. 
+
+## ⚙️ Setup 
+
+TODO

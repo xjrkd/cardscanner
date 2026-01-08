@@ -120,45 +120,6 @@ def manual_card_input():
     return [], []
 
 
-# def display(matched_cards_list, multi_select_options):
-#     with container:
-#         if matched_cards_list:
-#             for cards in matched_cards_list:    
-#                 for i in range(0, len(cards), 3):
-#                     cols = container.columns(3)
-#                     for col, card in zip(cols, cards[i:i+3]):
-#                         col.image(card["best_card_url"])
-#                         if card["missing_url"]: 
-#                             warning_missing_url = "Warning: Incomplete API Database. Card might be wrong!"
-#                         else: 
-#                             warning_missing_url = ""
-#                         col.write(f'{card["matched_pokemon"], card["id"], warning_missing_url }')
-
-#         multi_select = st.multiselect(
-#             "Exclude the following cards from being added to the database",
-#             multi_select_options,
-#         )
-#         return multi_select
-
-# def add_cards_to_database(selection): 
-#     if "matched_cards_list" not in st.session_state:
-#         st.session_state.matched_cards_list = []
-#     if not st.session_state.matched_cards_list:
-#         print("returning, no cards list (None)")
-#         return  
-    
-#     ids_to_remove = [id[1] for id in selection]
-#     cards_to_add_to_database = [card for card in st.session_state.matched_cards_list[0] if card["id"] not in ids_to_remove]
-    
-#     if st.button("Submit to database"):
-#         st.session_state.database.insert_card_data(cards_to_add_to_database, f"{st.session_state.database.db_name}", st.session_state.language)
-#         placeholder.empty()
-#         st.session_state["file_uploader_key"] += 1
-#         st.session_state.matched_cards_list = []            #Reset so old card isn't displayed anymore
-#         st.session_state.multi_select_options = []
-#         st.session_state.manual_input_field = st.text_input("Enter card and HP manually. Or upload files below.", value="", on_change=clear_input_field)
-#         print(st.session_state.multi_select_options, st.session_state.matched_cards_list)
-#         st.rerun()
     
 def manage_selection_and_submit(matched_cards_list: list, multi_select_options: list, manual: bool): 
     with container:

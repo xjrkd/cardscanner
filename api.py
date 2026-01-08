@@ -2,8 +2,6 @@ from fastapi import FastAPI, UploadFile, File
 from PIL import Image, ImageOps
 import io
 import pandas as pd
-# Import your existing classes
-# Assuming your classes are in a file named 'my_pokemon_logic.py' or similar
 from main import CardDetector, CardFinder, PokemonDatabase
 from rfdetr import RFDETRNano
 import base64
@@ -12,9 +10,6 @@ import cv2
 
 app = FastAPI()
 
-# GLOBAL VARIABLES
-# We define these outside of functions so they load ONLY ONCE when the server starts.
-# If we put this inside the function, your app would freeze for 5 seconds on every request to load the model.
 print("Loading AI Models... please wait...")
 model = RFDETRNano(pretrain_weights="E:\\PythonProjects\\pokemon\\rfdetr_train\\checkpoint0004.pth")
 carddetector = CardDetector(model)
@@ -39,7 +34,6 @@ async def scan_card(file: UploadFile = File(...)):
     # 2. Convert bytes to a PIL Image
     image = Image.open(io.BytesIO(image_data))
     image = ImageOps.exif_transpose(image) # FIX phone error EXIF Orientation.
-    # When you take a photo with a phone, the camera saves the pixels in the orientation of the sensor (usually "sideways" or landscape), even if you held the phone vertically. It adds a metadata tag (EXIF) saying "Rotate this 90 degrees when viewing."
     
     # Detect cards
     detections = carddetector.detect_cards(image)
@@ -58,12 +52,10 @@ async def scan_card(file: UploadFile = File(...)):
     matched_cards = cardfinder.get_pricing(matched_cards)
     
     # Database
-    # Note: In a real app, we might want to ask the user to "Confirm" before saving,
-    # but for now, we save immediately like your script did.
     database.insert_card_data(matched_cards)  
   
     response_data = convert_nparray_to_string(matched_cards)
-    # Return the data as JSON so the App can display it
+
     print("Breakpoint")
     return {"status": "success", "cards": response_data}
 

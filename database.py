@@ -114,6 +114,8 @@ class PokemonDatabase:
             else:
                 # Insert the Pokémon card details into the pokemon_cards table
                 # Insert into Table (pokemon_cards) into columns (id, name) the values (placeholders followed by actual values)
+                
+                illustrator = card_data["full_info"].get("illustrator", None)
                 cursor.execute('''
                 INSERT OR REPLACE INTO pokemon_cards (
                     card_id, name, rarity, set_name, set_id, hp, illustrator, image_url, type
@@ -121,7 +123,7 @@ class PokemonDatabase:
                 ''', (
                     card_data['id'], card_data["full_info"]['name'], card_data["full_info"]['rarity'],
                     card_data["full_info"]['set']["name"], card_data["full_info"]["set"]['id'], card_data['hp'],
-                    card_data["full_info"]['illustrator'], card_data['best_card_url'], ', '.join(card_data["full_info"]["types"])
+                    illustrator, card_data['best_card_url'], ', '.join(card_data["full_info"]["types"])
                 )) 
 
                     # Insert attack data
