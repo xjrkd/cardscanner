@@ -12,10 +12,10 @@ import re, unicodedata
 
 
 class CardDetector: 
-    def __init__(self, model=None):
+    def __init__(self, model=None, language="de"):
         self.model = model
         self.pokedex_csv = pd.read_csv("international_dex.csv") #With international names, further has attacks etc. https://www.pokecommunity.com/threads/international-list-of-names-in-csv.460446/
-
+        self.language = language
 
     def initialize_paths(): 
         ds = sv.DetectionDataset.from_coco(
@@ -138,7 +138,7 @@ class CardDetector:
         Iterates through the entire ocr detected text to match detections against names from the pokedex.csv file.
         Returns a list of dictionaries containing name, image and hp.
         '''
-        normalized_pokedex = {self.normalize_detected_name(p, True): p for p in self.pokedex_csv["de"]}
+        normalized_pokedex = {self.normalize_detected_name(p, True): p for p in self.pokedex_csv[self.language]}
         matched_pokemon = []
 
 

@@ -16,6 +16,14 @@ The project is designed to scan cards via images or the provided name and return
 
 ---
 
+## 🔄 Workflow
+
+![Workflow](showcase/workflow.png)
+
+This workflow shows how an uploaded image is analyzed step by step to identify a card and display the correct information.
+
+---
+
 ## 📷 Showcase
 
 ![Upload Page](showcase/uploadpage.png)
@@ -29,6 +37,12 @@ Personal collection page. Cards in collection are displayed in color while missi
 ![Portfolio](showcase/portfolio.png)
 
 Information about your entire collection such as unique cards, total cards and current value. 
+
+![InventoryManager](showcase/inventorymanager.png)
+
+Delete cards from your collection.
+
+---
 
 ## ⚙️ Setup 
 

@@ -21,7 +21,7 @@ st.write(
 st.write("Using database:", st.session_state.database.db_name)
 
 if "detector" not in st.session_state: 
-    st.session_state.detector = CardDetector(get_model())
+    st.session_state.detector = CardDetector(get_model(), st.session_state.language)
 
 if "finder" not in st.session_state: 
     st.session_state.finder = CardFinder(st.session_state.detector, st.session_state.language)
@@ -113,9 +113,7 @@ def manual_card_input():
             entry["missing_url"] = True if full_info.get("image") is None else False
 
             manual_multi_select.append((full_info["name"], entry["id"]))
-        
-        # st.session_state.matched_cards_list.append(response)
-        # st.session_state.multi_select_options = manual_multi_select
+    
         return [response], manual_multi_select
     return [], []
 
@@ -123,7 +121,7 @@ def manual_card_input():
     
 def manage_selection_and_submit(matched_cards_list: list, multi_select_options: list, manual: bool): 
     with container:
-        # Interaction with widgets inside here WON'T trigger a rerun.
+        # Interaction with widgets inside here won't trigger a rerun.
         with st.form("validation_form"):
             
             # Display Logic 
@@ -132,11 +130,15 @@ def manage_selection_and_submit(matched_cards_list: list, multi_select_options: 
                     for i in range(0, len(cards), 3):
                         cols = st.columns(3) # Use st.columns inside the form
                         for col, card in zip(cols, cards[i:i+3]):
-                            if not card["missing_url"] or card["best_card_url"] is not None: 
+                            if card["missing_url"] or card["best_card_url"] is None: 
                                 warning_missing_url = "Warning: Incomplete API Database."
-                                col.image(card["best_card_url"])
+                                try:
+                                    col.image(card["best_card_url"])
+                                except: 
+                                    col.write("Missing Image")
                             else: 
                                 warning_missing_url = ""
+                                col.image(card["best_card_url"])
                             col.write(f'{card["matched_pokemon"], card["id"], warning_missing_url }')
 
             # Multiselect Logic
