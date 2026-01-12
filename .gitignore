@@ -16,8 +16,8 @@ wheels/
 !showcase/uploadpage.png
 !showcase/portfolio.png
 !showcase/book.png
-!!showcase/inventorymanager.png
-!!!showcase/workflow.png
+!showcase/inventorymanager.png
+!showcase/workflow.png
 
 # Virtual environments
 .venv

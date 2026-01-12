@@ -8,7 +8,7 @@ import requests
 
 class CardFinder(): 
     
-    def __init__(self, carddetector, language):
+    def __init__(self, carddetector, language="de"):
         self.carddetector = carddetector
         self.flag_url_missing = False
         self.language = language 

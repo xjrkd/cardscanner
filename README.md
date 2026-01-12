@@ -29,6 +29,7 @@ This workflow shows how an uploaded image is analyzed step by step to identify a
 ![Upload Page](showcase/uploadpage.png)
 
 Upload your image here. When uploading multiple images you can choose which cards should be added to the database in case some are misclassified.
+You can view the uploaded image in the showcase folder. Taken from [this video](https://youtu.be/rXYs86_Gxsg?)
 
 ![Scrapbook](showcase/book.png)
 
